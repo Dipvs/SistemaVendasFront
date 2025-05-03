@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../Navbar';
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import PerformanceVendedorPagePdf from '../reports/reportPdfs/PerformanceVendedorPagePdf';
 
 const PerformanceVendedorPage = () => {
   const { currentUser } = useAuth();
@@ -28,56 +27,16 @@ const PerformanceVendedorPage = () => {
 
   
   const exportToPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape' }); // <-- horizontal
-  
-    doc.setFontSize(16);
-    doc.text('Relatório de Performance - Vendedor', 14, 20);
-  
-    const tableColumn = [
-      'Cod.Depto',
-      'Departamento',
-      'Meta Financeira',
-      'Realizado Bimestre',
-      '% Meta Bimestral',
-      'Realizado Mês 1',
-      'Realizado Mês 2',
-      'A Faturar',
-      'Meta Positivação',
-      '% Positivação',
-      'Posit. Mês 1',
-      'Posit. Mês 2',
-      'Qtd Mix',
-      'Venda Mix',
-      'SKU PDV'
-    ];
-  
-    const tableRows = performanceData.map(item => [
-      item.codDepto,
-      item.departamento,
-      formatCurrency(item.metaFinanceira),
-      formatCurrency(item.realizadoBimestre),
-      formatPercentage(item.metaBimestralPercentual),
-      formatCurrency(item.realizadoMes1),
-      formatCurrency(item.realizadoMes2),
-      formatCurrency(item.aFaturar),
-      formatPercentage(item.metaMediaPositivacao),
-      formatPercentage(item.positivacaoBimestral),
-      formatPercentage(item.positivacaoMes1),
-      formatPercentage(item.positivacaoMes2),
-      item.quantidadeMix,
-      item.vendaMix,
-      item.skuPDV
-    ]);
-  
-    autoTable(doc, {
-      startY: 30,
-      head: [tableColumn],
-      body: tableRows,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [79, 70, 229] }, // Indigo-600
+    // Chame o método generate com os dados necessários
+    PerformanceVendedorPagePdf.generate({
+      performanceData, // Usa os dados já existentes no componente
+      periodoReferencia: period === 'atual' ? 'Bimestre Atual' : period === 'anterior' ? 'Bimestre Anterior' : 'Período Personalizado',
+      vendedorNome: selectedVendedor === 'todos' ? 'Todos os Vendedores' : 
+        vendedores.find(v => v.id.toString() === selectedVendedor)?.nome || 'Vendedor Não Identificado',
+      formatCurrency, // Usa a função já existente no componente
+      formatPercentage, // Usa a função já existente no componente
+      totals // Usa os totais já calculados no componente
     });
-  
-    doc.save('performance_vendedor.pdf');
   };
   
 
