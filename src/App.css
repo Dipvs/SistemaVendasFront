@@ -12,11 +12,65 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #1b2077aa);
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+
+/* Navbar Styles */
+.navbar {
+  background-color: #4f46e5; /* bg-indigo-600 */
+}
+
+.navbar-title {
+  color: white;
+  font-weight: bold;
+}
+
+.navbar-role {
+  color: #c7d2fe; /* text-indigo-200 */
+}
+
+.btn-open-ticket {
+  color: #e0e7ff; /* text-indigo-100 */
+  background-color: #6366f1; /* bg-indigo-500 */
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+}
+
+.btn-open-ticket:hover {
+  background-color: #818cf8; /* hover:bg-indigo-400 */
+}
+
+.btn-logout {
+  color: white;
+  background-color: #4338ca; /* bg-indigo-700 */
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+}
+
+.btn-logout:hover {
+  background-color: #3730a3; /* hover:bg-indigo-800 */
+}
+
+.mobile-menu {
+  background-color: #4338ca; /* bg-indigo-700 */
+}
+
+.mobile-button {
+  color: #c7d2fe;
+}
+
+.mobile-button:hover {
+  color: white;
+  background-color: #4f46e5; /* hover:bg-indigo-600 */
+}
+
 
 @keyframes logo-spin {
   from {

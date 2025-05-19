@@ -4,14 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from './Navbar';
 
 const AdminPage = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
 
-  // Redirecionar se o usuário não for administrador
-  if (!currentUser || currentUser.idCargo !== 1) {
-    navigate('/login');
-    return null;
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-100">

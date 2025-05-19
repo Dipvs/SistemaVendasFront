@@ -1,6 +1,8 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
 import Login from './components/Login';
 import AdminPage from './components/AdminPage';
 import ManagerPage from './components/ManagerPage';
@@ -8,7 +10,7 @@ import SupervisorPage from './components/SupervisorPage';
 import SalesPage from './components/SalesPage';
 import AbrirChamadoPage from './components/AbrirChamadoPage';
 
-// Importando todos os componentes de relatórios
+// Relatórios
 import PerformanceVendedorPage from './components/reports/PerformanceVendedorPage';
 import InadimplenciaPage from './components/reports/InadimplenciaPage';
 import PainelComissaoPage from './components/reports/PainelComissaoPage';
@@ -23,59 +25,16 @@ import FaturamentoVendedorClientePage from './components/reports/FaturamentoVend
 
 import './index.css';
 
-// Componente para proteger rotas
-const ProtectedRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
-  
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-  
-  return children;
-};
-
-// Componente para proteger rotas específicas para supervisor
-const SupervisorRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
-  
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-  
-  if (currentUser.idCargo !== 3) {
-    return <Navigate to="/" />;
-  }
-  
-  return children;
-};
-
-// Componente para redirecionar baseado no cargo do usuário
 const RedirectBasedOnRole = () => {
-  const { currentUser } = useAuth();
-  
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-  
-  switch (currentUser.idCargo) {
-    case 1:
-      return <Navigate to="/admin" />;
-    case 2:
-      return <Navigate to="/gerente" />;
-    case 3:
-      return <Navigate to="/supervisor" />;
-    case 4:
-      return <Navigate to="/vendedor" />;
-    default:
-      return <Navigate to="/login" />;
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  if (!userData) return <Navigate to="/login" replace />;
+
+  switch (userData.tipo) {
+    case 1: return <Navigate to="/admin" replace />;
+    case 2: return <Navigate to="/gerente" replace />;
+    case 3: return <Navigate to="/supervisor" replace />;
+    case 4: return <Navigate to="/vendedor" replace />;
+    default: return <Navigate to="/login" replace />;
   }
 };
 
@@ -84,107 +43,99 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
+          {/* Login deve vir antes de qualquer redirecionamento */}
           <Route path="/login" element={<Login />} />
-          
+
+          {/* Redireciona baseado no tipo */}
+          <Route path="/" element={<RedirectBasedOnRole />} />
+
+          {/* Áreas protegidas por tipo */}
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredType={1}>
               <AdminPage />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/gerente" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredType={2}>
               <ManagerPage />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/supervisor" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredType={3}>
               <SupervisorPage />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/vendedor" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredType={4}>
               <SalesPage />
             </ProtectedRoute>
           } />
-          
-          {/* Rotas para os relatórios do supervisor */}
-          <Route path="/supervisor/reports/inadimplencia" element={
-            <SupervisorRoute>
-              <InadimplenciaPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/painel-comissao" element={
-            <SupervisorRoute>
-              <PainelComissaoPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/painel-diario" element={
-            <SupervisorRoute>
-              <PainelDiarioPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/performance-supervisor" element={
-            <SupervisorRoute>
-              <PerformanceSupervisorPage />
-            </SupervisorRoute>
-          } />
-          
+
+          {/* Relatórios (apenas para supervisores) */}
           <Route path="/supervisor/reports/performance-vendedor" element={
-            <SupervisorRoute>
+            <ProtectedRoute requiredType={3}>
               <PerformanceVendedorPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/checkin-checkout-vendedor" element={
-            <SupervisorRoute>
-              <CheckinCheckoutVendedorPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/checkin-checkout-gerencial" element={
-            <SupervisorRoute>
-              <CheckinCheckoutGerencialPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/checkin-checkout-dia-anterior" element={
-            <SupervisorRoute>
-              <CheckinCheckoutDiaAnteriorPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/pedidos" element={
-            <SupervisorRoute>
-              <PedidosPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/pedidos-nao-faturados" element={
-            <SupervisorRoute>
-              <PedidosNaoFaturadosPage />
-            </SupervisorRoute>
-          } />
-          
-          <Route path="/supervisor/reports/faturamento-vendedor-cliente" element={
-            <SupervisorRoute>
-              <FaturamentoVendedorClientePage />
-            </SupervisorRoute>
-          } />
-          
-          {/* Rota para abertura de chamados */}
-          <Route path="/abrir-chamado" element={
-            <ProtectedRoute>
-              <AbrirChamadoPage />
             </ProtectedRoute>
           } />
-          
-          <Route path="/" element={<RedirectBasedOnRole />} />
+          <Route path="/supervisor/reports/inadimplencia" element={
+            <ProtectedRoute requiredType={3}>
+              <InadimplenciaPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/painel-comissao" element={
+            <ProtectedRoute requiredType={3}>
+              <PainelComissaoPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/painel-diario" element={
+            <ProtectedRoute requiredType={3}>
+              <PainelDiarioPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/performance-supervisor" element={
+            <ProtectedRoute requiredType={3}>
+              <PerformanceSupervisorPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/checkin-checkout-vendedor" element={
+            <ProtectedRoute requiredType={3}>
+              <CheckinCheckoutVendedorPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/checkin-checkout-gerencial" element={
+            <ProtectedRoute requiredType={3}>
+              <CheckinCheckoutGerencialPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/checkin-checkout-dia-anterior" element={
+            <ProtectedRoute requiredType={3}>
+              <CheckinCheckoutDiaAnteriorPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/pedidos" element={
+            <ProtectedRoute requiredType={3}>
+              <PedidosPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/pedidos-nao-faturados" element={
+            <ProtectedRoute requiredType={3}>
+              <PedidosNaoFaturadosPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/supervisor/reports/faturamento-vendedor-cliente" element={
+            <ProtectedRoute requiredType={3}>
+              <FaturamentoVendedorClientePage />
+            </ProtectedRoute>
+          } />
+
+          {/* Página pública */}
+          <Route path="/abrir-chamado" element={<AbrirChamadoPage />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

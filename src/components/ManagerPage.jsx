@@ -7,11 +7,6 @@ const ManagerPage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Redirecionar se o usuário não for gerente
-  if (!currentUser || currentUser.idCargo !== 2) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">

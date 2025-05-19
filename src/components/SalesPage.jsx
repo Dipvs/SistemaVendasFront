@@ -7,11 +7,6 @@ const SalesPage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Redirecionar se o usuário não for vendedor
-  if (!currentUser || currentUser.idCargo !== 4) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">

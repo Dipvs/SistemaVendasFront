@@ -8,11 +8,6 @@ const SupervisorPage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Redirecionar se o usuário não for supervisor
-  if (!currentUser || currentUser.idCargo !== 3) {
-    navigate('/login');
-    return null;
-  }
 
   const reportTypes = [
     {

@@ -1,5 +1,6 @@
+// src/contexts/AuthContext.jsx
 import { createContext, useState, useContext, useEffect } from 'react';
-import { loginUser } from '../utils/api';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -10,43 +11,75 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar se existe usuário no localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get('http://localhost:3000/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setCurrentUser(response.data);
+      } catch (error) {
+        localStorage.removeItem('token');
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      setLoading(true);
-      const userData = await loginUser(email, password);
-      setCurrentUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return userData;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const login = async (login, senha) => {
+  try {
+    setLoading(true);
+    const response = await axios.post('http://localhost:3000/api/auth/login', {
+      login,
+      senha
+    });
+
+    // Armazena o token
+    const { token, user } = response.data;
+    localStorage.setItem('token', token);
+
+    // Armazena os dados do usuário diretamente da resposta
+    // Não precisamos fazer a chamada adicional para /me aqui
+    setCurrentUser(user);
+    
+    return user; // Retorna o user com tipo para o componente Login
+    
+  } catch (error) {
+    console.error('Erro no login:', error);
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
 
   const logout = () => {
+    localStorage.removeItem('token');
     setCurrentUser(null);
-    localStorage.removeItem('user');
-  };
-
-  const value = {
-    currentUser,
-    login,
-    logout,
-    loading
+    // Chamada opcional para logout no backend
+    axios.post('http://localhost:3000/api/auth/logout', {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    }).catch(() => {});
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={{ 
+      currentUser, 
+      login, 
+      logout, 
+      loading 
+    }}>
+      {children}
     </AuthContext.Provider>
   );
 };
